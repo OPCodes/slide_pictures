@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0; 
+            background: #000;
+        }
+        ul,ol {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        img { 
+            border: none;
+        }
+        #wrap {
+            margin: 40px auto;
+            padding: 40px;
+            width: 600px;
+            height: 400px;
+            background: #404040;
+            border-radius: 20px;
+        }
+        #tab { 
+            position: relative;
+            width: 600px;
+            height: 400px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        #tab a{
+            position: absolute;
+            top: 170px;
+            width: 60px;
+            height: 60px;
+            line-height:60px;
+            border-radius: 50%;
+            opacity: 0.4;
+            font-size:40px;
+            text-align: center;
+            text-decoration: none;
+            color: #fff;
+            background: #ef9408;
+            z-index: 10;
+
+        }
+        #tab a:hover { 
+            opacity: 1;
+        }
+        #prev { 
+            left:10px;
+        }
+        #next { 
+            right: 10px;
+        } 
+        #list {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 400px;
+            border-radius: 20px;
+        } 
+        #list li {
+            list-style: none;
+            width: 600px;
+            height: 400px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 1;
+        }
+        #dotList {
+            position: absolute;
+            left: 0;
+            bottom: 20px;
+            width: 100%;
+            height: 20px;
+            text-align: center;
+            z-index: 10;
+        }
+        #dotList li { 
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ccc;
+            cursor: pointer;
+        }
+        #dotList li.active { 
+            background: #efbd00;
+        }
+    </style>
+    <script src="js/tools.js"></script>
+    <script src="js/MTween.js"></script>
+    <script>
+        window.onload = function (){
+            
+            var prev = $("#prev");
+            var next = $("#next");
+            var list = $("#list");
+            var allLi = $("li",list);
+            var dotList = $("#dotList");
+            var allDLis = $("li",dotList);
+            var len = allLi.length; // 包img的li的个数
+            var oneLiW = parseInt(getStyle(allLi[0],"width")); //一个li的宽度
+            var timer = null;
+
+            list.style.width = len * oneLiW + "px"; // ul的长度为li的个数乘以一个li的width
+
+            for( var i = 1; i < len; i++ ){
+                allLi[i].style.left = oneLiW + "px";
+            }
+
+            var n = 0; // n控制图片
+
+            var old = 0;
+
+            var zIndex = 0;
+
+            list.style.left = - n * oneLiW + "px";  // ul的初始值为-oneLiW
+
+            // 自动播放
+            //run();
+
+            function run(){
+                timer = setTimeout(function (){
+                    timer = setInterval(function (){
+
+                        if( list.timer ) return; // 消除连续点击按钮bug
+                        n++;
+                        if( n > len - 1 ){
+                            n = 0;
+                        }
+                        for( var i = 0; i < len; i++ ){
+                            allDLis[i].className = "";
+                        }
+                        allDLis[n].className = "active";
+
+                        allLi[old].style.left = 0;
+                        allLi[n].style.left = oneLiW + "px";
+                        allLi[n].style.zIndex = 3;
+
+                        MTween(allLi[n],"left",1000,0,"linear",function (){
+                            allLi[n].style.zIndex = 2;
+                            allLi[old].style.left = oneLiW + "px";
+                            old = n;
+                        });
+
+                    },2000)
+                },2000)
+            }
+
+            next.onclick = function (){
+                if( allLi[n].timer ) return;
+                console.log(old);
+                n++;
+                if( n > len - 1 ){
+                    n = 0;
+                }
+                for( var i = 0; i < len; i++ ){
+                    allDLis[i].className = "";
+                }
+                allDLis[n].className = "active";
+
+                allLi[old].style.left = 0;
+                allLi[n].style.left = oneLiW + "px";
+                allLi[n].style.zIndex = 3;
+
+                MTween(allLi[n],"left",1000,0,"linear",function (){
+                    allLi[n].style.zIndex = 0;
+                    allLi[old].style.left = oneLiW + "px";
+                    old = n;
+                });
+            }
+
+            prev.onclick = function (){
+                if( list.timer ) return;
+                n--;
+                if( n < 0 ){
+                    n = len - 1;
+                }
+                for( var i = 0; i < len; i++ ){
+                    allDLis[i].className = "";
+                }
+                allDLis[n].className = "active";
+
+
+                allLi[old].style.left = 0;
+                allLi[n].style.left = -oneLiW + "px";
+                allLi[n].style.zIndex = 3;
+
+                MTween(allLi[n],"left",1000,0,"linear",function (){
+                    allLi[n].style.zIndex = 0;
+                    allLi[old].style.left = oneLiW + "px";
+                    old = n;
+                });
+            }
+
+            prev.onmouseover = function (){
+                clearInterval(timer);
+            }
+
+            prev.onmouseout = function (){
+                run();
+            }
+
+            next.onmouseover = function (){
+                clearInterval(timer);
+            }
+
+            next.onmouseout = function (){
+                run();
+            }
+
+            for( var i = 0; i < len; i++ ){
+                allDLis[i].index = i;
+                allDLis[i].onclick = function (){
+                    if( allLi[n].timer ) return;
+                    old = n;
+                    n = this.index;
+                    for( var i = 0; i < len; i++ ){
+                        allDLis[i].className = "";
+                    }
+                    allDLis[n].className = "active";
+                    if( this.index > old ){
+                        allLi[old].style.left = 0;
+                        allLi[this.index].style.left = oneLiW + "px";
+                        allLi[this.index].style.zIndex = 3;
+
+                        MTween(allLi[n],"left",1000,0,"linear",function (){
+                            allLi[n].style.zIndex = 0;
+                            allLi[old].style.left = oneLiW + "px";
+                            old = n;
+                        });
+                    } else if ( this.index < old ){
+                        allLi[old].style.left = 0;
+                        allLi[this.index].style.left = -oneLiW + "px";
+                        allLi[this.index].style.zIndex = 3;
+
+                        MTween(allLi[n],"left",1000,0,"linear",function (){
+                            allLi[n].style.zIndex = 0;
+                            allLi[old].style.left = oneLiW + "px";
+                            old = n;
+                        });
+                    } else {
+                        return;
+                    }
+                    
+                }
+
+                allDLis[i].onmouseover = function (){
+                    clearInterval(timer);
+                }
+
+                allDLis[i].onmouseout = function (){
+                    run();
+                }
+            }
+
+        }
+    </script>
+</head>
+<body>
+<div id="wrap">
+    <div id="tab">
+        <a id="prev" href="javascript:void(0);"><</a>
+        <a id="next" href="javascript:void(0);">></a>
+        <ul id="list">
+            <li>
+                <img src="img/100.jpg" />
+            </li>
+            <li>
+                <img src="img/200.jpg" />
+            </li>
+            <li>
+                <img src="img/300.jpg" />
+            </li>
+            <li>
+                <img src="img/400.jpg" />
+            </li>
+            <li>
+                <img src="img/500.jpg" />
+            </li>
+        </ul>
+        <ol id="dotList">
+            <li class="active"></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ol>
+    </div>
+</div>
+</body>
+</html>
